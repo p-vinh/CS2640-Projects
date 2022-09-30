@@ -13,20 +13,21 @@ change:
         .asciiz  "Enter the change? "
         
         .data
-quarter:  
+quarterText:  
         .asciiz "\nQuarter: "
 
         .data
-dime:  
+dimeText:  
         .asciiz "\nDime: "
 
         .data
-nickel:
+nickelText:
         .asciiz "\nNickel: "
 
         .data
-penny:
+pennyText:
         .asciiz "\nPenny: "
+
 
 
         .text
@@ -44,48 +45,63 @@ main:
         mflo	$t1					# $t1 = floor($a0 / $t0) How much Quarters
         mfhi	$t2					# $t2 = $a0 mod $t0 Total Left
         
-        la      $a0, quarter        # Printing out the string "Quarter: "
-        li      $v0, 4
-        syscall
-        move    $a0, $t1            # Printing out the number needed
-        li      $v0, 1
-        syscall
+        bgtz    $t1, quarter
         
         li      $t0, 10             # Loads immediate 10 into $t0
         div     $t2, $t0            # $t2 / $t0
         mflo	$t1					# $t1 = floor($t2 / $t0) How much Dime
         mfhi	$t2                 # $t2 = $t2 mod $t0 Total Left
 
-        la      $a0, dime         # Printing out the string "Dime: "
-        li      $v0, 4
-        syscall
-        move    $a0, $t1            # Printing out the number needed
-        li      $v0, 1
-        syscall
+        bgtz    $t1, dime
 
-        li      $t0, 5             # Loads immediate 5 into $t0
+        li      $t0, 5              # Loads immediate 5 into $t0
         div     $t2, $t0            # $t2 / $t0
         mflo	$t1					# $t1 = floor($t2 / $t0) How much Nickel
         mfhi	$t2                 # $t2 = $t2 mod $t0 Total Left
 
-        la      $a0, nickel         # Printing out the string "Nickel: "
-        li      $v0, 4
-        syscall
-        move    $a0, $t1            # Printing out the number needed
-        li      $v0, 1
-        syscall
-
-        li      $t0, 1             # Loads immediate 1 into $t0
+        li      $t0, 1              # Loads immediate 1 into $t0
         div     $t2, $t0            # $t2 / $t0
         mflo	$t1					# $t1 = floor($t2 / $t0) How much Penny
         mfhi	$t2                 # $t2 = $t2 mod $t0 Total Left
 
-        la      $a0, penny         # Printing out the string "Penny: "
+        bgtz    $t1, penny
+
+        li      $v0, 10             # exit
+        syscall
+
+
+        .text
+quarter:
+        la      $a0, quarterText    # Printing out the string "Quarter: "
         li      $v0, 4
         syscall
         move    $a0, $t1            # Printing out the number needed
         li      $v0, 1
         syscall
 
-        li      $v0, 10             # exit
+        .text
+dime:
+        la      $a0, dimeText       # Printing out the string "Dime: "
+        li      $v0, 4
+        syscall
+        move    $a0, $t1            # Printing out the number needed
+        li      $v0, 1
+        syscall
+
+        .text
+nickel:
+        la      $a0, nickelText         # Printing out the string "Nickel: "
+        li      $v0, 4
+        syscall
+        move    $a0, $t1            # Printing out the number needed
+        li      $v0, 1
+        syscall
+        
+        .text
+penny:
+        la      $a0, pennyText          # Printing out the string "Penny: "
+        li      $v0, 4
+        syscall
+        move    $a0, $t1            # Printing out the number needed
+        li      $v0, 1
         syscall
