@@ -14,11 +14,19 @@ change:
         
         .data
 quarter:  
-        .asciiz "Quarter: "
+        .asciiz "\nQuarter: "
+
+        .data
+dime:  
+        .asciiz "\nDime: "
 
         .data
 nickel:
-        .asciiz "Nickel: "
+        .asciiz "\nNickel: "
+
+        .data
+penny:
+        .asciiz "\nPenny: "
 
 
         .text
@@ -44,10 +52,40 @@ main:
         syscall
         
         li      $t0, 10             # Loads immediate 10 into $t0
-        div     $t2, $t0
-        mflo	$t1					
-        mfhi	$t2
+        div     $t2, $t0            # $t2 / $t0
+        mflo	$t1					# $t1 = floor($t2 / $t0) How much Dime
+        mfhi	$t2                 # $t2 = $t2 mod $t0 Total Left
 
+        la      $a0, dime         # Printing out the string "Dime: "
+        li      $v0, 4
+        syscall
+        move    $a0, $t1            # Printing out the number needed
+        li      $v0, 1
+        syscall
+
+        li      $t0, 5             # Loads immediate 5 into $t0
+        div     $t2, $t0            # $t2 / $t0
+        mflo	$t1					# $t1 = floor($t2 / $t0) How much Nickel
+        mfhi	$t2                 # $t2 = $t2 mod $t0 Total Left
+
+        la      $a0, nickel         # Printing out the string "Nickel: "
+        li      $v0, 4
+        syscall
+        move    $a0, $t1            # Printing out the number needed
+        li      $v0, 1
+        syscall
+
+        li      $t0, 1             # Loads immediate 1 into $t0
+        div     $t2, $t0            # $t2 / $t0
+        mflo	$t1					# $t1 = floor($t2 / $t0) How much Penny
+        mfhi	$t2                 # $t2 = $t2 mod $t0 Total Left
+
+        la      $a0, penny         # Printing out the string "Penny: "
+        li      $v0, 4
+        syscall
+        move    $a0, $t1            # Printing out the number needed
+        li      $v0, 1
+        syscall
 
         li      $v0, 10             # exit
         syscall
