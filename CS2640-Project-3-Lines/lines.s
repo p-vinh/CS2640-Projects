@@ -59,6 +59,31 @@ enddowhile:
 
 
 	# output all the lines here
+	la	$t1, lines
+	li	$t2, 0				# index
+for:
+	bge	$t2, 8, endfor
+
+	lw	$t3, ($t1)			# t3 = address of c string
+	
+	li	$v0, 11
+while:						# prints the content from line
+	beq	$a0, $zero, endwhile
+	lb	$a0, ($t3)
+	syscall
+
+	addu	$t3, $t3, 1
+	b	while
+endwhile:
+
+
+	sll	$t4, $t4, 2
+	addu	$t1, $t1, $t4
+	addi	$t2, $t2, 1			# increment
+	b	for
+endfor:
+
+
 	li	$a0, '\n'
 	li	$v0, 11
 	syscall
@@ -72,16 +97,16 @@ enddowhile:
 strlen:
 	li	$t0, 0			# length
 
-while:
+while2:
 	lb	$t1, ($a0)
-	beq	$t1, $zero, endwhile	# branch off if char is '\0' or '\n'
-	beq	$t1, 10, endwhile
+	beq	$t1, $zero, endwhile2	# branch off if char is '\0' or '\n'
+	beq	$t1, 10, endwhile2
 	
 
 	addi	$t0, $t0, 1
 	addu	$a0, $a0, 1
-	b	while
-endwhile:
+	b	while2
+endwhile2:
 	move	$v0, $t0
 	jr	$ra
 
@@ -90,23 +115,23 @@ endwhile:
 
 
 strdup:
-dowhile2:
 	# might have bug here. not moving parameter and justt calling strlen right away
+	move	$t1, $a0
 	jal	strlen
 	addi	$a0, $v0, 1
 	jal	malloc
 
-	la	$t0, $v0		# newly allocated address
+	move	$t0, $v0		# newly allocated address
 
-	
+dowhile2:
 
-	lb	$t6, ($a1)		# a1 = base of str1
-	sb	$t6, ($a0)		# a0 = base of str2
+	lb	$t2, ($t1)		# t1 = base of src
+	sb	$t2, ($t0)		# t0 = base of dst
 
-	addu	$a0, $a0, 1		# effective address of str2 = base + 1 
-	addu	$a1, $a1, 1		# effective address of str1 = base + 1 
+	addu	$t1, $t1, 1		# effective address of src = base + 1 
+	addu	$t0, $t0, 1		# effective address of dst = base + 1 
 
-	beq	$t6, $zero, enddowhile2	# if str1[t5] == '\0'
+	beq	$t2, $zero, enddowhile2	# if str1[t5] == '\0'
 	b	dowhile2
 enddowhile2:
 	jr	$ra
@@ -115,5 +140,14 @@ enddowhile2:
 
 
 malloc:					# address malloc (int size)
+
+	# make sure parameter is a multiple of 4
+	addi	$a0, $a0, 3
+	and	$a0, $a0, 0xfffc
+	li	$v0, 9
+	syscall
+	jr	$ra
+
+
 
 	
