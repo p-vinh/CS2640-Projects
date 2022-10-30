@@ -43,7 +43,7 @@ dowhile:
 	la	$t1, inbuf
 	lb	$t2, ($t1)
 
-	bne	$t2, 10, enddowhile		# break if t2 contains a '\n'
+	beq	$t2, 10, enddowhile		# break if t2 contains a '\n'
 
 	move	$a0, $t1
 	jal	strdup				#strdup(inbuf)
