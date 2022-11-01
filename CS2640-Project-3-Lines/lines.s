@@ -43,16 +43,17 @@ dowhile:
 	la	$t1, inbuf
 	lb	$t2, ($t1)
 
-	beq	$t2, 10, enddowhile		# break if t2 contains a '\n'
+	beq	$t2, '\n', enddowhile		# break if t2 contains a '\n' check if user put 'enter'
 
 	move	$a0, $t1
-	jal	strdup				#strdup(inbuf)
+	jal	strdup				# strdup(inbuf)
 	sw	$v0, ($t3)			# saving address of C-String to lines
 	sll	$t4, $t4, 2
 	addu	$t3, $t3, $t4			# lines[t3] - effective address
 
 	
 	addi	$t0, $t0, 1			# t0 ++
+	addi	$t4, $t4, 1			# t4 ++ for offset
 	bge	$t0, 8, enddowhile 
 	b	dowhile
 enddowhile:
@@ -60,26 +61,19 @@ enddowhile:
 
 	# output all the lines here
 	la	$t1, lines
+	li	$t4, 0
 	li	$t2, 0				# index
 for:
 	bge	$t2, 8, endfor
 
-	lw	$t3, ($t1)			# t3 = address of c string
-	
-	li	$v0, 11
-while:						# prints the content from line
-	beq	$a0, $zero, endwhile
-	lb	$a0, ($t3)
+	lw	$a0, ($t1)			# a0 = address of c string
+	li	$v0, 4
 	syscall
-
-	addu	$t3, $t3, 1
-	b	while
-endwhile:
-
 
 	sll	$t4, $t4, 2
 	addu	$t1, $t1, $t4
-	addi	$t2, $t2, 1			# increment
+	addi	$t2, $t2, 1			# increment index
+	addi	$t4, $t4, 1			# increment offset
 	b	for
 endfor:
 
@@ -98,9 +92,9 @@ strlen:
 	li	$t0, 0			# length count
 
 while2:
-	lb	$t7, ($a0)
-	beq	$t7, $zero, endwhile2	# branch off if char is '\0' or '\n'
-	beq	$t7, '\n', endwhile2
+	lb	$t4, ($a0)
+	beq	$t4, $zero, endwhile2	# branch off if char is '\0' or '\n'
+	beq	$t4, '\n', endwhile2
 	
 
 	addi	$t0, $t0, 1
@@ -115,10 +109,9 @@ endwhile2:
 
 
 strdup:
-	# might have bug here. not moving parameter and justt calling strlen right away
-	move	$t1, $a0
+	move	$t1, $a0		# string to dup move to t1 to keep address
 	jal	strlen
-	addi	$a0, $v0, 1
+	move	$a0, $v0		# moving the return value of strlen into a0 for malloc
 	jal	malloc
 
 	move	$t0, $v0		# newly allocated address
@@ -126,12 +119,15 @@ strdup:
 dowhile2:
 
 	lb	$t2, ($t1)		# t1 = base of src
+
+	beq	$t2, $zero, enddowhile2	# if str1[t5] == '\0'
+	beq	$t2, '\n', enddowhile2	# if str1[t5] == '\n'
+
 	sb	$t2, ($t0)		# t0 = base of dst
 
 	addu	$t1, $t1, 1		# effective address of src = base + 1 
 	addu	$t0, $t0, 1		# effective address of dst = base + 1 
 
-	beq	$t2, $zero, enddowhile2	# if str1[t5] == '\0'
 	b	dowhile2
 enddowhile2:
 	jr	$ra
