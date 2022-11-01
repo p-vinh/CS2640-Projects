@@ -98,9 +98,9 @@ strlen:
 	li	$t0, 0			# length count
 
 while2:
-	lb	$t1, ($a0)
-	beq	$t1, $zero, endwhile2	# branch off if char is '\0' or '\n'
-	beq	$t1, 10, endwhile2
+	lb	$t7, ($a0)
+	beq	$t7, $zero, endwhile2	# branch off if char is '\0' or '\n'
+	beq	$t7, '\n', endwhile2
 	
 
 	addi	$t0, $t0, 1
