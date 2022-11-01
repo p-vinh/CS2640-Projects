@@ -95,7 +95,7 @@ endfor:
 
 
 strlen:
-	li	$t0, 0			# length
+	li	$t0, 0			# length count
 
 while2:
 	lb	$t1, ($a0)
