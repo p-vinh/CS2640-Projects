@@ -56,17 +56,9 @@ main:
 
 
 
-	la	$t0, str2
-	li	$v0, 11
-
-while:					# prints the content from str2
-	beq	$a0, $zero, endwhile
-	lb	$a0, ($t0)
+	la	$a0, str2		# prints content of str2
+	li	$v0, 4
 	syscall
-
-	addu	$t0, $t0, 1
-	b	while
-endwhile:
 
 
 	li	$a0, '\n'
@@ -85,7 +77,7 @@ strlen:
 while2:
 	lb	$t1, ($a0)
 	beq	$t1, $zero, endwhile2	# branch off if char is '\0' or '\n'
-	beq	$t1, 10, endwhile2
+	beq	$t1, '\n', endwhile2
 	
 
 	addi	$t0, $t0, 1
@@ -106,9 +98,8 @@ dowhile:
 	addu	$a0, $a0, 1		# effective address of str2 = base + 1 
 	addu	$a1, $a1, 1		# effective address of str1 = base + 1 
 
-	beq	$t6, $zero, enddowhile	# if str1[t5] == '\0'
-	b	dowhile
-enddowhile:
+	bne	$t6, $zero, dowhile	# if str1[t5] == '\0'
+
 	jr	$ra
 	
 	
