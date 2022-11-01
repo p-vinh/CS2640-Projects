@@ -43,20 +43,18 @@ dowhile:
 	la	$t1, inbuf
 	lb	$t2, ($t1)
 
-	beq	$t2, '\n', enddowhile		# break if t2 contains a '\n' check if user put 'enter'
+	# beq	$t2, '\n', enddowhile		# break if t2 contains a '\n' check if user put 'enter'
 
-	move	$a0, $t1
+	move	$a0, $t1			### MIGHT NOT NEED THIS###
 	jal	strdup				# strdup(inbuf)
 	sw	$v0, ($t3)			# saving address of C-String to lines
 	sll	$t4, $t4, 2
 	addu	$t3, $t3, $t4			# lines[t3] - effective address
 
 	
-	addi	$t0, $t0, 1			# t0 ++
 	addi	$t4, $t4, 1			# t4 ++ for offset
-	bge	$t0, 8, enddowhile 
-	b	dowhile
-enddowhile:
+	addi	$t0, $t0, 1			# t0 ++
+	blt	$t0, 8, dowhile 
 
 
 	# output all the lines here
@@ -89,19 +87,19 @@ endfor:
 
 
 strlen:
-	li	$t0, 0			# length count
+	li	$t5, 0			# length count
 
 while2:
-	lb	$t4, ($a0)
-	beq	$t4, $zero, endwhile2	# branch off if char is '\0' or '\n'
-	beq	$t4, '\n', endwhile2
+	lb	$t7, ($a0)
+	beq	$t7, $zero, endwhile2	# branch off if char is '\0' or '\n'
+	beq	$t7, '\n', endwhile2
 	
 
-	addi	$t0, $t0, 1
+	addi	$t5, $t5, 1
 	addu	$a0, $a0, 1
 	b	while2
 endwhile2:
-	move	$v0, $t0
+	move	$v0, $t5
 	jr	$ra
 
 
@@ -109,27 +107,26 @@ endwhile2:
 
 
 strdup:
+	move	$t8, $ra		# keep return address to main
 	move	$t1, $a0		# string to dup move to t1 to keep address
 	jal	strlen
 	move	$a0, $v0		# moving the return value of strlen into a0 for malloc
 	jal	malloc
 
-	move	$t0, $v0		# newly allocated address
+	move	$t6, $v0		# newly allocated address
 
-dowhile2:
-
+while3:
+	bne	$t2, $zero, endwhile3	# if str1[t2] != '\0'
 	lb	$t2, ($t1)		# t1 = base of src
-
-	beq	$t2, $zero, enddowhile2	# if str1[t5] == '\0'
-	beq	$t2, '\n', enddowhile2	# if str1[t5] == '\n'
-
-	sb	$t2, ($t0)		# t0 = base of dst
+	sb	$t2, ($t6)		# t6 = base of dst
 
 	addu	$t1, $t1, 1		# effective address of src = base + 1 
-	addu	$t0, $t0, 1		# effective address of dst = base + 1 
+	addu	$t6, $t6, 1		# effective address of dst = base + 1 
 
-	b	dowhile2
-enddowhile2:
+	b while3
+
+endwhile3:
+	move	$ra, $t8
 	jr	$ra
 	
 	
