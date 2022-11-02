@@ -11,10 +11,10 @@
 	.data
 MAXLINES = 8
 LINELEN = 40
-lines:	.word	0:8
 inbuf:	.space	LINELEN + 2			# up to LINELEN byte
 title:	.asciiz	"Lines by V. Pham\n"
-prompt:	.asciiz "Enter text? "
+prompt:	.asciiz "\nEnter text? "
+lines:	.word	0:MAXLINES
 
 	.text
 main:
@@ -33,7 +33,7 @@ dowhile:
 	syscall
 
 	la	$a0, inbuf
-	li	$a1, LINELEN + 1
+	li	$a1, LINELEN
 	li	$v0, 8
 	syscall
 
@@ -45,6 +45,7 @@ dowhile:
 	beq	$t2, '\n', enddowhile		# break if t2 contains a '\n' check if user put 'enter'
 
 	jal	strdup				# strdup(inbuf)
+
 	sll	$t4, $t0, 2
 	addu	$t3, $t3, $t4			# lines[t3] - effective address
 
@@ -62,12 +63,12 @@ for:
 	sll	$t4, $t2, 2
 	addu	$t1, $t1, $t4
 
+	li	$a0, '\n'
+	li	$v0, 11
+	syscall
 	lw	$a0, ($t1)			# a0 = address of c string
 	beqz	$a0, endfor 			# break when array does not have address
 	li	$v0, 4
-	syscall
-	li	$a0, '\n'
-	li	$v0, 11
 	syscall
 
 	addi	$t2, $t2, 1			# increment index
@@ -87,7 +88,7 @@ endfor:
 
 
 
-# does it need to include \0 and \n?
+
 
 # cstring strdup (cstring src)
 #	Duplicates a given string and allocates memory to the new string
@@ -99,17 +100,17 @@ strdup:
 	addiu	$sp, $sp, -4		# keep return address to main
 	sw	$ra, ($sp)
 
-	move	$t8, $a0		# string to dup move to t1 to keep address
+	move	$t8, $a0		# string to dup move to t8 to keep address
 	jal	strlen
+	addi	$v0, $v0, 1		# strlen + 1 for malloc
 	move	$a0, $v0		# moving the return value of strlen into a0 for malloc
 	jal	malloc
 
 	move	$t6, $v0		# newly allocated address as well as the return value
 
 while3:
-	lb	$t2, ($t8)		# t1 = base of src
+	lb	$t2, ($t8)		# t8 = base of src
 	beq	$t2, $zero, endwhile3	# if str1[t2] != '\0'
-	beq	$t2, 10, endwhile3	# if str1[t2] != '\n'
 
 	sb	$t2, ($t6)		# t6 = base of dst
 
@@ -134,8 +135,7 @@ strlen:
 	li	$t5, 0			# length count
 while2:
 	lb	$t7, ($a0)
-	beq	$t7, $zero, endwhile2	# branch off if char is '\0' or '\n'
-	beq	$t7, '\n', endwhile2
+	beq	$t7, $zero, endwhile2	# branch off if char is '\0'
 	
 
 	addi	$t5, $t5, 1
