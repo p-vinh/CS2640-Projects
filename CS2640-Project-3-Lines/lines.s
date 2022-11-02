@@ -12,7 +12,7 @@
 MAXLINES = 8
 LINELEN = 40
 lines:	.word	0:8
-inbuf:	.space	LINELEN + 2			# up to LINELEN byte, see syscall 8 for reference
+inbuf:	.space	LINELEN + 2			# up to LINELEN byte
 title:	.asciiz	"Lines by V. Pham\n"
 prompt:	.asciiz "Enter text? "
 
@@ -33,7 +33,7 @@ dowhile:
 	syscall
 
 	la	$a0, inbuf
-	li	$a1, LINELEN
+	li	$a1, LINELEN + 1
 	li	$v0, 8
 	syscall
 
@@ -44,7 +44,6 @@ dowhile:
 
 	beq	$t2, '\n', enddowhile		# break if t2 contains a '\n' check if user put 'enter'
 
-	move	$a0, $t1			### MIGHT NOT NEED THIS###
 	jal	strdup				# strdup(inbuf)
 	sll	$t4, $t0, 2
 	addu	$t3, $t3, $t4			# lines[t3] - effective address
@@ -55,19 +54,22 @@ dowhile:
 	blt	$t0, 8, dowhile 
 enddowhile:
 
-	# output all the lines here
+						# output all the lines here
 	la	$t1, lines
 	li	$t2, 0				# index
 for:
 	bge	$t2, 8, endfor
-
-	lw	$a0, ($t1)			# a0 = address of c string
-	bne	$a0, '\n', endfor
-	li	$v0, 4
-	syscall
-
 	sll	$t4, $t2, 2
 	addu	$t1, $t1, $t4
+
+	lw	$a0, ($t1)			# a0 = address of c string
+	beqz	$a0, endfor 			# break when array does not have address
+	li	$v0, 4
+	syscall
+	li	$a0, '\n'
+	li	$v0, 11
+	syscall
+
 	addi	$t2, $t2, 1			# increment index
 	b	for
 endfor:
@@ -85,27 +87,33 @@ endfor:
 
 
 
+# does it need to include \0 and \n?
 
-
+# cstring strdup (cstring src)
+#	Duplicates a given string and allocates memory to the new string
+# parameter:
+#	$a0 - cstring to duplicate
+# return:
+#	$v0 - the address of the cstring
 strdup:
 	addiu	$sp, $sp, -4		# keep return address to main
 	sw	$ra, ($sp)
 
-	move	$t1, $a0		# string to dup move to t1 to keep address
+	move	$t8, $a0		# string to dup move to t1 to keep address
 	jal	strlen
 	move	$a0, $v0		# moving the return value of strlen into a0 for malloc
 	jal	malloc
 
-	move	$t6, $v0		# newly allocated address
+	move	$t6, $v0		# newly allocated address as well as the return value
 
 while3:
-	lb	$t2, ($t1)		# t1 = base of src
-	bne	$t2, $zero, endwhile3	# if str1[t2] != '\0'
-	bne	$t2, 10, endwhile3	# if str1[t2] != '\n'
+	lb	$t2, ($t8)		# t1 = base of src
+	beq	$t2, $zero, endwhile3	# if str1[t2] != '\0'
+	beq	$t2, 10, endwhile3	# if str1[t2] != '\n'
 
 	sb	$t2, ($t6)		# t6 = base of dst
 
-	addu	$t1, $t1, 1		# effective address of src = base + 1 
+	addu	$t8, $t8, 1		# effective address of src = base + 1 
 	addu	$t6, $t6, 1		# effective address of dst = base + 1 
 
 	b while3
@@ -148,7 +156,7 @@ endwhile2:
 #	a0 - number of bytes to allocate
 # return:
 #	v0 - address of the new allocated space
-malloc:					# address malloc (int size)
+malloc:
 					# make sure parameter is a multiple of 4
 	addi	$a0, $a0, 3
 	and	$a0, $a0, 0xfffc
