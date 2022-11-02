@@ -5,7 +5,9 @@
 #  Course:	cs-2640-04-f22
 # 
 #  Description: 
-#	
+#	This program asks for an input up to 40 characters. Then duplicates the input to allocate it to memory with the given size.
+#	The strdup will return an address and stores the address into an array.
+#	The output will print out all the inputs from the user through the addresses in memory stored in the array
 #
 
 	.data
@@ -54,6 +56,10 @@ dowhile:
 	addi	$t0, $t0, 1			# t0 ++
 	blt	$t0, 8, dowhile 
 enddowhile:
+
+	li	$a0, '\n'
+	li	$v0, 11
+	syscall
 
 						# output all the lines here
 	la	$t1, lines
@@ -142,7 +148,7 @@ while2:
 	addu	$a0, $a0, 1
 	b	while2
 endwhile2:
-	move	$v0, $t5
+	move	$v0, $t5		# returning the length of the string
 	jr	$ra
 
 
@@ -160,7 +166,7 @@ malloc:
 					# make sure parameter is a multiple of 4
 	addi	$a0, $a0, 3
 	and	$a0, $a0, 0xfffc
-	li	$v0, 9
+	li	$v0, 9			# allocate space with the giving size + 1
 	syscall
 	jr	$ra
 
