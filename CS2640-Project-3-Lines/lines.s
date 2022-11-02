@@ -26,7 +26,6 @@ main:
 
 	li	$t0, 0				# index
 	la	$t3, lines			# base address
-	li	$t4, 0				# offset
 
 dowhile:
 	la	$a0, prompt			# prompt the user
@@ -43,35 +42,33 @@ dowhile:
 	la	$t1, inbuf
 	lb	$t2, ($t1)
 
-	# beq	$t2, '\n', enddowhile		# break if t2 contains a '\n' check if user put 'enter'
+	beq	$t2, '\n', enddowhile		# break if t2 contains a '\n' check if user put 'enter'
 
 	move	$a0, $t1			### MIGHT NOT NEED THIS###
 	jal	strdup				# strdup(inbuf)
-	sw	$v0, ($t3)			# saving address of C-String to lines
-	sll	$t4, $t4, 2
+	sll	$t4, $t0, 2
 	addu	$t3, $t3, $t4			# lines[t3] - effective address
 
+	sw	$v0, ($t3)			# saving address of C-String to lines
 	
-	addi	$t4, $t4, 1			# t4 ++ for offset
 	addi	$t0, $t0, 1			# t0 ++
 	blt	$t0, 8, dowhile 
-
+enddowhile:
 
 	# output all the lines here
 	la	$t1, lines
-	li	$t4, 0
 	li	$t2, 0				# index
 for:
 	bge	$t2, 8, endfor
 
 	lw	$a0, ($t1)			# a0 = address of c string
+	bne	$a0, '\n', endfor
 	li	$v0, 4
 	syscall
 
-	sll	$t4, $t4, 2
+	sll	$t4, $t2, 2
 	addu	$t1, $t1, $t4
 	addi	$t2, $t2, 1			# increment index
-	addi	$t4, $t4, 1			# increment offset
 	b	for
 endfor:
 
@@ -86,9 +83,47 @@ endfor:
 
 
 
+
+
+
+
+strdup:
+	addiu	$sp, $sp, -4		# keep return address to main
+	sw	$ra, ($sp)
+
+	move	$t1, $a0		# string to dup move to t1 to keep address
+	jal	strlen
+	move	$a0, $v0		# moving the return value of strlen into a0 for malloc
+	jal	malloc
+
+	move	$t6, $v0		# newly allocated address
+
+while3:
+	lb	$t2, ($t1)		# t1 = base of src
+	bne	$t2, $zero, endwhile3	# if str1[t2] != '\0'
+	bne	$t2, 10, endwhile3	# if str1[t2] != '\n'
+
+	sb	$t2, ($t6)		# t6 = base of dst
+
+	addu	$t1, $t1, 1		# effective address of src = base + 1 
+	addu	$t6, $t6, 1		# effective address of dst = base + 1 
+
+	b while3
+
+endwhile3:
+	lw	$ra, ($sp)		# pop off of the stack
+	addiu	$sp, $sp, 4
+	jr	$ra
+	
+
+# int strlen(cstring s) - the length of the string
+#
+# parameter:
+#	a0 - the cstring
+# return:
+#	v0 - the length of the cstring
 strlen:
 	li	$t5, 0			# length count
-
 while2:
 	lb	$t7, ($a0)
 	beq	$t7, $zero, endwhile2	# branch off if char is '\0' or '\n'
@@ -106,35 +141,15 @@ endwhile2:
 
 
 
-strdup:
-	move	$t8, $ra		# keep return address to main
-	move	$t1, $a0		# string to dup move to t1 to keep address
-	jal	strlen
-	move	$a0, $v0		# moving the return value of strlen into a0 for malloc
-	jal	malloc
 
-	move	$t6, $v0		# newly allocated address
-
-while3:
-	bne	$t2, $zero, endwhile3	# if str1[t2] != '\0'
-	lb	$t2, ($t1)		# t1 = base of src
-	sb	$t2, ($t6)		# t6 = base of dst
-
-	addu	$t1, $t1, 1		# effective address of src = base + 1 
-	addu	$t6, $t6, 1		# effective address of dst = base + 1 
-
-	b while3
-
-endwhile3:
-	move	$ra, $t8
-	jr	$ra
-	
-	
-
-
+# address malloc(int size) - allocate memory from the heap
+#
+# parameter:
+#	a0 - number of bytes to allocate
+# return:
+#	v0 - address of the new allocated space
 malloc:					# address malloc (int size)
-
-	# make sure parameter is a multiple of 4
+					# make sure parameter is a multiple of 4
 	addi	$a0, $a0, 3
 	and	$a0, $a0, 0xfffc
 	li	$v0, 9
