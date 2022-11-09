@@ -67,7 +67,24 @@ while:		.asciiz	"while"
 
 	.text
 main:
+	move	$t0, $a0
+	move	$t1, $a1
+do:	lw	$a0, ($t1)	# loop and output all argv
+	li	$v0, 4
+	syscall
+	li	$a0, '\n'
+	li	$v0, 11
+	syscall
 
+	addiu	$t1, $t1, 4	# next argv
+	sub	$t0, $t0, 1
+	bnez	$t0, do
+
+
+
+
+	li	$v0, 10		# exit
+	syscall
 
 
 
