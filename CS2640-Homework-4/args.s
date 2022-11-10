@@ -75,27 +75,17 @@ while:		.asciiz	"while"
 main:
 	move	$s0, $a0
 	move	$s1, $a1
-
+	sub		$s0, $s0, 1
 	la	$t5, keywords
 
-do1:	lw	$a0, ($s1)	# loop and output all argv
-	lw	$a1, ($t5)
-	jal	strcmp
+do1:	lw	$a0, 4($s1)	# loop and output all argv
 
-	move	$t4, $v0
-	addu	$t3, $t5, $t4
-	lw	$a0, ($t3)
 	li	$v0, 4
 	syscall
-	li	$a0, ':'
-	li	$v0, 11
-	syscall
-	move	$a0, $t4
-	li 	$v0, 1
-	syscall
+
 
 	addiu	$s1, $s1, 4	# next argv
-	addiu	$t2, $t2, 4
+	addiu	$t5, $t5, 4
 	sub	$s0, $s0, 1
 
 	bnez	$s0, do1
@@ -106,25 +96,3 @@ do1:	lw	$a0, ($s1)	# loop and output all argv
 	syscall
 
 
-
-strcmp:
-	li	$t0, 0
-
-while2:
-	addu	$a0, $a0, $t0
-	addu	$a1, $a1, $t0
-
-	lb	$t1, ($a0)
-	lb	$t2, ($a1)
-	
-	bne	$t1, 10, endif2		# t1 != '\n' => endif2
-	li	$v0, 0
-	b	endwhile2		# branch to endwhile2 (return)
-	
-endif2:
-	addi	$t0, $t0, 1		# i++
-	beq	$t1, $t2, while2	# t1 == t2 => while2
-
-endwhile2:
-	sub	$v0, $t1, $t2
-	jr	$ra

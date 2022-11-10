@@ -1,7 +1,17 @@
+# 
+#  Name:	Pham, Vinh 
+#  Homework:	4
+#  Due:		November 10, 2022 
+#  Course:	cs-2640-04-f22 
+# 
+#  Description: 
+#    Takes in command line arguements and does a 
+#    linear search through keywrods using string compare 
+#    to return the index of the given value.
+# 
+	
 	.data
-
-
-title:		.asciiz "Java Keywords by V. Pham"
+title:		.asciiz "Java Keywords by V. Pham\n"
 
 keywords:
 	.word	abstract, assert, boolean, xbreak, byte, case, catch, char
@@ -72,8 +82,8 @@ while:		.asciiz	"while"
 main:
 	move	$s0, $a0	# s0 = argc
 	move	$s1, $a1	# s1 = argv, address to an array of cstring
-
-
+	sub	$s0, $s0, 1	# removing 1 so it doesn't count path to args
+	addiu	$s1, $s1, 4	# adding 4 so it skips path and goes to first argument
 
 	la	$a0, title
 	li	$v0, 4
@@ -86,17 +96,17 @@ main:
 
 dowhile:
 	la	$a0, keywords
-	li	$a1, 52
+	li	$a1, 53
 	lw	$a2, ($s1)	# loop and output all argv
 
 	jal	lsearch
 
-	bge	$v0, 52, endif3	
+	bge	$v0, 53, else2	# if the return value is greater than the length (does not exist in array) => else2
 
-	move	$t4, $v0
+	move	$t4, $v0	# print contents with the given index
 	la	$t2, keywords
-	sll	$t5, $v0, 2
-	addu	$t3, $t2, $t5
+	sll	$t5, $v0, 2	# calculate offset
+	addu	$t3, $t2, $t5	# effective address
 	lw	$a0, ($t3)
 	li	$v0, 4
 	syscall
@@ -106,7 +116,17 @@ dowhile:
 	move	$a0, $t4
 	li 	$v0, 1
 	syscall
-
+	li	$a0, '\n'
+	li	$v0, 11
+	syscall
+	b endif3
+else2:				# doesn't exist in array
+	lw	$a0, ($s1)	# prints word
+	li	$v0, 4
+	syscall
+	li	$a0, '\n'
+	li	$v0, 11
+	syscall
 endif3:
 	addiu	$s1, $s1, 4	# next argv
 	sub	$s0, $s0, 1
@@ -124,27 +144,33 @@ endif3:
 
 
 
-
+# int lsearch (cstring array[], int length, cstring value)
+#	
+# parameter:
+#	$a0 - keywords array
+#	$a1 - length of the array
+#	$a2 - value to look for
+# return:
+#	$v0 - index of value
 lsearch:
 	addiu	$sp, $sp, -4
 	sw	$ra, ($sp)
 	move	$s2, $a0		# s2 = keyword array address
 	move	$s3, $a1		# s3 = length
 
-	li	$v0, 0			# index
+	li	$s4, 0			# index
 
-while1:	bge	$v0, $s3, endwhile1	# maybe error index >= 52
-	move	$s4, $v0
+while1:	bge	$s4, $s3, endwhile1	# index >= 52
+
 
 	lw	$a0, ($s2)		# address of string
 	move	$a1, $a2		# address to value
 	jal	strcmp
 
-	bnez	$v0, else1
+	bnez	$v0, else1		# if v0 != 0 => else, v0 == 0 => end loop if value is found 
 	b	endwhile1
 else1:
-	move	$v0, $s4
-	addi	$v0, $v0, 1
+	addi	$s4, $s4, 1
 	addi	$s2, $s2, 4
 
 	b	while1
@@ -153,30 +179,37 @@ endwhile1:
 
 	lw	$ra, ($sp)
 	addiu	$sp, $sp, 4
-
+	move	$v0, $s4
 	jr	$ra
 
 
 
-
+# int strcmp (char *src, char *target)
+#	Compares two strings and if they are equal to each other it returns a 0
+# parameter:
+#	$a0 - cstring from keywords
+#	$a1 - cstring thats getting looked for
+# return:
+#	$v0 -	return < 0 if s < t
+#		0 if s == t
+#		return > 0 if s > t 
 strcmp:
-	li	$t0, 0		# int i = 0
+	li	$t0, 0			# int i = 0
 
 while2:
 	addu	$t1, $a0, $t0
 	addu	$t2, $a1, $t0
 
-	lb	$t3, ($t1)
+	lb	$t3, ($t1)		# loads characters into t3 and t4
 	lb	$t4, ($t2)
-	
-	bne	$t3, 10, endif2		# t3 != '\n' => endif2
+	bne	$t3, $t4, endwhile2	# t3 != t4 => endwhile2
+	bne	$t3, $zero, endif2	# t3 != '\0' => endif2
 	li	$v0, 0
 	b	endwhile2		# branch to endwhile2 (return)
-	
 endif2:
 	addi	$t0, $t0, 1		# i++
-	beq	$t3, $t4, while2	# t3 == t4 => while2
+	b while2
 
 endwhile2:
-	sub	$v0, $t3, $t4
+	sub	$v0, $t3, $t4		# return s[i] - t[i]
 	jr	$ra
