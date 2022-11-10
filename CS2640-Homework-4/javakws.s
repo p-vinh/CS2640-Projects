@@ -73,6 +73,17 @@ main:
 	move	$t0, $a0
 	move	$t1, $a1
 
+
+
+	la	$a0, title
+	li	$v0, 4
+	syscall
+	li	$a0, '\n'
+	li	$v0, 11
+	syscall
+
+
+
 	la	$a0, keywords
 	li	$a1, 52
 dowhile:
@@ -83,24 +94,32 @@ dowhile:
 
 	jal	lsearch
 
+	move	$t0, $s0
+	move	$t1, $s1
+	move	$t2, $v0
+
+	bge	$t2, 52, endif3	# if $t0 >= $52 then endif3
 
 
+	la	$t2, keywords
+	addu	$t3, $t2, $t4
+	lw	$a0, ($t3)
+	li	$v0, 4
+	syscall
+	li	$a0, ':'
+	li	$v0, 11
+	syscall
+	move	$a0, $t4
+	li 	$v0, 1
+	syscall
 
+endif3:
 	addiu	$t1, $t1, 4	# next argv
 	sub	$t0, $t0, 1
 	bnez	$t0, dowhile
 
 
-	la	$a0, title
-	li	$v0, 4
-	syscall
-	li	$a0, '\n'
-	li	$v0, 11
-	syscall
-
 	
-
-
 	li	$a0, '\n'
 	li	$v0, 11
 	syscall
@@ -108,6 +127,48 @@ dowhile:
 	syscall
 
 
+
+
+
+
+lsearch:
+	addiu	$sp, $sp, -4
+	sw	$ra, ($sp)
+	move	$s2, $a0
+	move	$s3, $a1
+
+	li	$v0, 0			# index
+	move	$t0, $a0
+
+while1:	bge	$v0, $a1, endwhile1	# maybe error
+
+	lw	$a0, ($t0)
+	move	$a1, $a2
+	move	$s4, $v0
+
+	jal	strcmp
+
+	move	$a0, $s2
+	move	$a1, $s3
+
+
+
+	bnez	$v0, else1
+	b	endwhile1
+else1:
+	addi	$v0, $v0, 1
+	addi	$t0, $a0, 4
+	move	$v0, $s4
+
+
+	b	while1
+
+endwhile1:
+
+	addiu	$sp, $sp, 4
+	lw	$ra, ($sp)
+
+	jr	$ra
 
 
 
@@ -123,7 +184,7 @@ while2:
 	lb	$t2, ($a1)
 	bne	$t1, $t2, endwhile2
 	
-if2:	bne	$t1, 10, endif2
+	bne	$t1, 10, endif2
 	li	$v0, 0
 	b	endwhile2		# branch to endwhile2
 	
@@ -134,42 +195,4 @@ endif2:
 
 endwhile2:
 	sub	$v0, $t1, $t2
-	jr	$ra
-
-
-
-
-
-
-
-lsearch:
-	addiu	$sp, $sp, -4
-	sw	$ra, ($sp)
-	move	$t3, $a0
-
-	li	$v0, 0		# index
-
-while1:	bge	$v0, $a1, endwhile1		# maybe error
-
-	add	$v0, $v0, $t3
-	lw	$a0, ($v0)
-	move	$a1, $a2
-	move	$s2, $v0
-
-	jal	strcmp
-
-
-	bnez	$v0, else1
-	b	endwhile1
-else1:
-	addi	$v0, $v0, 4
-	b while1
-
-endwhile1:
-
-
-	move	$v0, $s2
-	addiu	$sp, $sp, 4
-	lw	$ra, ($sp)
-
 	jr	$ra
