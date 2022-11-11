@@ -14,13 +14,16 @@
 title:		.asciiz "Java Keywords by V. Pham\n"
 
 keywords:
-	.word	abstract, assert, boolean, xbreak, byte, case, catch, char
-	.word	class, const, continue, default, do, double, else, enum
-	.word	extends, false, final, finally, float, for, goto, if
-	.word	implements, import, instanceof, int, interface, long, native, new
-	.word	null, package, private, protected, public, return, short, static
-	.word	strictfp, super, switch, synchronized, this, throw, throws, transient
-	.word	true, try, void, volatile, while
+		.word	abstract, assert, boolean, xbreak, byte, case, catch, char
+		.word	class, const, continue, default, do, double, else, enum
+		.word	extends, false, final, finally, float, for, goto, if
+		.word	implements, import, instanceof, int, interface, long, native, new
+		.word	null, package, private, protected, public, return, short, static
+		.word	strictfp, super, switch, synchronized, this, throw, throws, transient
+		.word	true, try, void, volatile, while
+endkeywords:
+
+SIZE = (endkeywords - keywords) / 4
 
 abstract:	.asciiz	"abstract"
 assert:		.asciiz	"assert"
@@ -80,10 +83,8 @@ while:		.asciiz	"while"
 
 	.text
 main:
-	move	$s0, $a0	# s0 = argc
-	move	$s1, $a1	# s1 = argv, address to an array of cstring
-	sub	$s0, $s0, 1	# removing 1 so it doesn't count path to args
-	addiu	$s1, $s1, 4	# adding 4 so it skips path and goes to first argument
+	sub	$s0, $a0, 1		# s0 = argc, removing 1 so it doesn't count path to args
+	addiu	$s1, $a1, 4		# s1 = argv, address to an array of cstring - adding 4 so it skips path and goes to first argument 
 
 	la	$a0, title
 	li	$v0, 4
@@ -96,17 +97,17 @@ main:
 
 dowhile:
 	la	$a0, keywords
-	li	$a1, 53
-	lw	$a2, ($s1)	# loop and output all argv
+	li	$a1, SIZE
+	lw	$a2, ($s1)		# loop and output all argv
 
 	jal	lsearch
 
-	bge	$v0, 53, else2	# if the return value is greater than the length (does not exist in array) => else2
+	bge	$v0, SIZE, else2	# if the return value is greater than the length (does not exist in array) => else2
 
-	move	$t4, $v0	# print contents with the given index
+	move	$t4, $v0		# print contents with the given index
 	la	$t2, keywords
-	sll	$t5, $v0, 2	# calculate offset
-	addu	$t3, $t2, $t5	# effective address
+	sll	$t5, $v0, 2		# calculate offset
+	addu	$t3, $t2, $t5		# effective address
 	lw	$a0, ($t3)
 	li	$v0, 4
 	syscall
@@ -120,15 +121,15 @@ dowhile:
 	li	$v0, 11
 	syscall
 	b endif3
-else2:				# doesn't exist in array
-	lw	$a0, ($s1)	# prints word
+else2:					# doesn't exist in array
+	lw	$a0, ($s1)		# prints word
 	li	$v0, 4
 	syscall
 	li	$a0, '\n'
 	li	$v0, 11
 	syscall
 endif3:
-	addiu	$s1, $s1, 4	# next argv
+	addiu	$s1, $s1, 4		# next argv
 	sub	$s0, $s0, 1
 	bnez	$s0, dowhile
 
@@ -137,7 +138,7 @@ endif3:
 	li	$a0, '\n'
 	li	$v0, 11
 	syscall
-	li	$v0, 10		# exit
+	li	$v0, 10			# exit
 	syscall
 
 
@@ -153,33 +154,37 @@ endif3:
 # return:
 #	$v0 - index of value
 lsearch:
-	addiu	$sp, $sp, -4
-	sw	$ra, ($sp)
-	move	$s2, $a0		# s2 = keyword array address
-	move	$s3, $a1		# s3 = length
+	addiu	$sp, $sp, -12		# saving s-registers and return address
+	sw	$ra, 0($sp)
+	sw	$s0, 4($sp)
+	sw	$s1, 8($sp)
 
-	li	$s4, 0			# index
+	move	$s0, $a0		# s0 = keyword array address
+	move	$s1, $a1		# s1 = length
+	li	$s2, 0			# s2 = index
 
-while1:	bge	$s4, $s3, endwhile1	# index >= 52
+while1:	bge	$s2, $s1, endwhile1	# index >= 53
 
 
-	lw	$a0, ($s2)		# address of string
+	lw	$a0, ($s0)		# address of string
 	move	$a1, $a2		# address to value
 	jal	strcmp
 
 	bnez	$v0, else1		# if v0 != 0 => else, v0 == 0 => end loop if value is found 
 	b	endwhile1
 else1:
-	addi	$s4, $s4, 1
-	addi	$s2, $s2, 4
+	addi	$s2, $s2, 1
+	addi	$s0, $s0, 4
 
 	b	while1
 
 endwhile1:
 
-	lw	$ra, ($sp)
-	addiu	$sp, $sp, 4
-	move	$v0, $s4
+	lw	$ra, 0($sp)
+	lw	$s0, 4($sp)
+	lw	$s1, 8($sp)
+	addiu	$sp, $sp, 12
+	move	$v0, $s2
 	jr	$ra
 
 
