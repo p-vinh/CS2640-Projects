@@ -1,3 +1,37 @@
+	.data
+LINELEN = 40
+pftname:
+	.asciiz "C:\Users\vinhp\OneDrive\Documents\GitHub\CS2640\CS2640-Project-4-Elements\enames.dat"
+buf:	.space	LINELEN + 2			# up to LINELEN byte
+	.text
+main:
+	la	$a0, pftname
+	jal	open
+	move	$s0, $v0		# save fd in s0
+do2:
+	move	$a0, $s0		
+	la	$a1, buf
+	jal	fgetln			# to read a string
+					# string read into buf
+	lb	$t0, 0($a1)
+	beq	$t0, '\n', enddowhile		# break if t2 contains a '\n' check if user put 'enter'
+
+	move	$a0, $a1
+	li	$v0, 4
+	syscall
+
+	b	do2
+
+enddowhile:
+	move	$a0, $s0
+	jal	close
+
+
+	li	$a0, '\n'
+	li	$v0, 11
+	syscall
+	li	$v0, 10
+	syscall
 
 # void fgetln (cstring s) - get a line of text from a file
 #		(\n included, null terminated)
