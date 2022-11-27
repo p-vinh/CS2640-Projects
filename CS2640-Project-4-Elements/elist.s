@@ -28,6 +28,28 @@ main:
 
 
 
+traverse:
+	addiu	$sp, $sp, -8
+	sw	$ra, 0($sp)
+	sw	$a0, 4($sp)
+
+	beqz	$a0, endif
+	lw	$a0, 4($a0)
+	jal	traverse
+
+	lw	$a0, 4($sp)
+	lw	$a0, 0($a0)
+	li	$v0, 4
+	syscall
+endif:
+
+	lw	$ra, 0($sp)
+	lw	$a0, 4($sp)
+	addiu	$sp, $sp, 8
+
+	jr	$ra
+
+
 # cstring strdup (cstring src)
 #	Duplicates a given string and allocates memory to the new string
 # parameter:
