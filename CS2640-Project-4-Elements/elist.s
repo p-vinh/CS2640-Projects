@@ -1,3 +1,15 @@
+# 
+#  Name:	Pham, Vinh 
+#  Homework:	4 
+#  Due:		December 1, 2022 
+#  Course:	cs-2640-04-f22
+# 
+#  Description: 
+#	This program takes in a file and reads the input
+#	Creates a single linked list for every line in the file
+#	Then traverses the single linked list using recursion
+#
+	
 	.data
 head:	.word 0
 input:	.space 64
