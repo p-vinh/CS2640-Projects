@@ -61,10 +61,15 @@ getnode:
 	addiu	$sp, $sp, -4
 	sw	$ra, 0($sp)
 
-	li	$a0, 4			# may be a bug with allocating space - "memory out of bounds"
+	li	$a0, 8			# may be a bug with allocating space - "memory out of bounds"
 	jal	malloc
 
+	sw	$a0, 0($v0)		# node.data = string
+	sw	$a1, 4($v0)		# node.next = addresslist
 
+	lw	$ra, 0($sp)
+	addiu	$sp, $sp, 4
+	jr	$ra
 
 # a0 - address list
 # a1 - address proc
@@ -102,10 +107,11 @@ print:
 # return:
 #	$v0 - the address of the cstring
 strdup:
-	addiu	$sp, $sp, -4		# keep return address to main
+	addiu	$sp, $sp, -8		# keep return address to main
 	sw	$ra, ($sp)
+	sw	$s0, 4($sp)
 
-	move	$t1, $a0		# string to dup move to t8 to keep address
+	move	$s0, $a0		# string to dup move to t8 to keep address
 	jal	strlen
 	addi	$v0, $v0, 1		# strlen + 1 for malloc
 	move	$a0, $v0		# moving the return value of strlen into a0 for malloc
@@ -114,19 +120,20 @@ strdup:
 	move	$t0, $v0		# newly allocated address as well as the return value
 
 while3:
-	lb	$t2, ($t1)		# t8 = base of src
+	lb	$t2, ($s0)		# t8 = base of src
 	beq	$t2, $zero, endwhile3	# if str1[t2] != '\0'
 
 	sb	$t2, ($t0)		# t6 = base of dst
 
-	addu	$t1, $t1, 1		# effective address of src = base + 1 
+	addu	$s0, $s0, 1		# effective address of src = base + 1 
 	addu	$t0, $t0, 1		# effective address of dst = base + 1 
 
 	b while3
 
 endwhile3:
+	lw	$s0, 4($sp)
 	lw	$ra, ($sp)		# pop off of the stack
-	addiu	$sp, $sp, 4
+	addiu	$sp, $sp, 8
 	jr	$ra
 	
 
