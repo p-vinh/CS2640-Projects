@@ -5,6 +5,9 @@ pftname:
 	.asciiz "C:\Users\vinhp\OneDrive\Documents\GitHub\CS2640\CS2640-Project-4-Elements\enames.dat"
 title:
 	.asciiz "Elements by V. Pham\n\n"
+elements:
+	.asciiz " elements\n\n"
+
 
 	.text
 main:
@@ -25,15 +28,13 @@ do2:
 	lb	$t0, 0($a1)
 	beq	$t0, '\n', enddowhile	# break if t2 contains a '\n' check if user put 'enter'
 
-
 	move	$a0, $a1
 	jal	strdup
 
 
 	move	$a0, $v0
-	lw	$a1, head		 # maybe bug
+	lw	$a1, head
 	jal	getnode
-
 	sw	$v0, head
 
 
@@ -43,6 +44,13 @@ do2:
 enddowhile:
 	move	$a0, $s0
 	jal	close
+
+	move	$a0, $s1		# prints number of elements
+	li	$v0, 1
+	syscall
+	la	$a0, elements
+	li	$v0, 4
+	syscall
 
 
 	lw	$a0, head
@@ -56,51 +64,72 @@ enddowhile:
 	syscall
 
 
-# a0 - string
-# a1 - address list
-
+# node-address getnode(cstring s, address list)
+#	returns the address of a new node and it is initialized with data and next
+# parameters:
+# 	$a0 - string
+# 	$a1 - address list
+# return:
+#	$v0 - address of node
 getnode:
-	addiu	$sp, $sp, -4
+	addiu	$sp, $sp, -12		# save registers
 	sw	$ra, 0($sp)
+	sw	$a0, 4($sp)
+	sw	$a1, 8($sp)
 
-	li	$a0, 8			# may be a bug with allocating space - "memory out of bounds"
-	jal	malloc
+	li	$a0, 8
+	jal	malloc			# allocate 8 bytes in heap for the node
 
-	sw	$a0, 0($v0)		# node.data = string
-	sw	$a1, 4($v0)		# node.next = addresslist
+	lw	$a0, 4($sp)		# restore string and address list
+	lw	$a1, 8($sp)
 
-	lw	$ra, 0($sp)
-	addiu	$sp, $sp, 4
+	sw	$a0, 0($v0)		# node.data = address of string
+	sw	$a1, 4($v0)		# node.next = address list
+
+	lw	$ra, 0($sp)		# restore return address
+	addiu	$sp, $sp, 12
 	jr	$ra
 
-# a0 - address list
-# a1 - address proc
 
+# void traverse(address list, address proc)
+#	traverses the address list and calls address proc passing the data of the node to proc
+# parameters:
+# 	a0 - address list
+# 	a1 - address proc
+# return:
+#	None
 traverse:
+	beqz	$a0, endif		# if (address list != 0)
+	
 	addiu	$sp, $sp, -8
 	sw	$ra, 0($sp)
 	sw	$a0, 4($sp)
 
-	beqz	$a0, endif
 	lw	$a0, 4($a0)
 	jal	traverse
 
-	lw	$a0, 4($sp)
-	lw	$a0, 0($a0)
+	lw	$a0, 4($sp)		# restore $a0
+	lw	$a0, 0($a0)		# a0 - list.data
 	jalr	$a1
-endif:
 
 	lw	$ra, 0($sp)
 	lw	$a0, 4($sp)
 	addiu	$sp, $sp, 8
-
+endif:
 	jr	$ra
 
-# a0 - string
+
+# void print (cstring string)
+#	Prints the given string
+# parameter:
+# 	$a0 - string
+# return:
+#	None
 print:
 	li	$v0, 4
 	syscall
 	jr	$ra
+
 
 # cstring strdup (cstring src)
 #	Duplicates a given string and allocates memory to the new string
@@ -115,20 +144,19 @@ strdup:
 
 	move	$s0, $a0		# string to dup move to t8 to keep address
 	jal	strlen
-	addi	$v0, $v0, 1		# strlen + 1 for malloc
-	move	$a0, $v0		# moving the return value of strlen into a0 for malloc
+	addi	$a0, $v0, 1		# strlen + 1 for malloc
 	jal	malloc
 
 	move	$t0, $v0		# newly allocated address as well as the return value
 
 while3:
 	lb	$t2, ($s0)		# t8 = base of src
-	beq	$t2, $zero, endwhile3	# if str1[t2] != '\0'
+	beqz	$t2, endwhile3		# if str1[t2] != '\0'
 
 	sb	$t2, ($t0)		# t6 = base of dst
 
-	addu	$s0, $s0, 1		# effective address of src = base + 1 
-	addu	$t0, $t0, 1		# effective address of dst = base + 1 
+	addiu	$s0, $s0, 1		# effective address of src = base + 1 
+	addiu	$t0, $t0, 1		# effective address of dst = base + 1 
 
 	b while3
 
@@ -146,17 +174,15 @@ endwhile3:
 # return:
 #	v0 - the length of the cstring
 strlen:
-	li	$t0, 0			# length count
+	move	$v0, $a0
 while2:
-	lb	$t1, ($a0)
-	beq	$t1, $zero, endwhile2	# branch off if char is '\0'
-	
+	lb	$t0, ($v0)
+	beqz	$t0, endwhile2		# branch off if char is '\0'
 
-	addi	$t0, $t0, 1
-	addu	$a0, $a0, 1
+	addi	$v0, $v0, 1
 	b	while2
 endwhile2:
-	move	$v0, $t0		# returning the length of the string
+	sub	$v0, $v0, $a0		# length = source[end] - source[start]
 	jr	$ra
 
 
@@ -181,13 +207,13 @@ malloc:
 # 	a0: fd (file descriptor)
 # 	a1: s
 fgetln:	move	$t0, $a1		# save a1
-	li	$a2, 1		# 1 byte at a time
+	li	$a2, 1			# 1 byte at a time
 do1:	li	$v0, 14
 	syscall
 	lb 	$t1, ($a1)
 	addiu 	$a1, $a1, 1
 	bne 	$t1, '\n', do1
-	sb 	$zero, ($a1)	# null byte
+	sb 	$zero, ($a1)		# null byte
 	move	$a1, $t0		# restore a1
 	jr	$ra
 
