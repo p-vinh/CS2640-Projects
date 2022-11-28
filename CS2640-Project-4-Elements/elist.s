@@ -9,7 +9,9 @@ title:
 	.text
 main:
 
-
+	la	$a0, title
+	li	$v0, 4
+	syscall
 
 	la	$a0, pftname
 	jal	open
