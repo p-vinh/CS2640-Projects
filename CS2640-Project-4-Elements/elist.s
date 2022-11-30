@@ -13,9 +13,8 @@
 	.data
 head:	.word 0
 input:	.space 64
-pftname:
-	.asciiz "C:\Users\vinhp\OneDrive\Documents\GitHub\CS2640\CS2640-Project-4-Elements\enames.dat"
-title:
+ptfname:.asciiz "C:\Users\vinhp\Documents\GitHub\CS2640-Projects\CS2640-Project-4-Elements\enames.dat"
+title:	
 	.asciiz "Elements by V. Pham\n\n"
 elements:
 	.asciiz " elements\n\n"
@@ -28,7 +27,7 @@ main:
 	li	$v0, 4
 	syscall
 
-	la	$a0, pftname
+	la	$a0, ptfname
 	jal	open
 	move	$s0, $v0		# save fd in s0
 	li	$s1, 0			# count of elements
