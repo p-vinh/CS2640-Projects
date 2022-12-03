@@ -1,3 +1,14 @@
+# 
+#  Name:	Pham, Vinh 
+#  Homework:	5 
+#  Due:		December 8, 2022 
+#  Course:	cs-2640-04-f22
+# 
+#  Description: 
+#	This program takes in 3 inputs and returns the roots if
+#	they aren't imaginary numbers and is a quadratic equation.
+#
+	
 	.data
 # Header/Input
 header:	.asciiz	"Quadratic Equation Solver v0.1 by V. Pham\n\n"
@@ -82,11 +93,6 @@ main:
 	mov.s	$f13, $f21
 	mov.s	$f14, $f22
 	jal	quadeq
-	#test
-	move	$a0, $v0
-	li	$v0, 1
-	syscall
-	move	$v0, $a0
 
 	bne	$v0, 0, elseif
 	la	$a0, notquadratic
@@ -140,6 +146,11 @@ endif:
 #	$f12 - input a
 #	$f13 - input b
 #	$f14 - input c
+# return:
+#	$v0 - number that determines the answer
+#	$f0 - returns a float from the quadratic
+#	$f1 - returns a float from the quadratic
+#
 quadeq:
 	li	$v0, 0
 	li.s	$f4, 0.0
@@ -204,7 +215,9 @@ else3:
 # float sqrts(float x)
 #
 # parameters:
-#	$f12
+#	$f12 - input number
+# return:
+#	$f0 - square root of input
 sqrts:
 	sqrt.s	$f0, $f12
 	jr	$ra
