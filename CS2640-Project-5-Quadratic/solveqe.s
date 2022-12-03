@@ -66,7 +66,7 @@ main:
 	li	$v0, 4
 	syscall
 
-				# printing output
+					# printing input into formatted quadratic
 	mov.s	$f12, $f20
 	li	$v0, 2
 	syscall
@@ -92,16 +92,16 @@ main:
 	mov.s	$f12, $f20
 	mov.s	$f13, $f21
 	mov.s	$f14, $f22
-	jal	quadeq
+	jal	quadeq			# int quadeq(f20, f21, f22)
 
-	bne	$v0, 0, elseif
+	bne	$v0, 0, elseif		# if (v0 == 0) => not quadratic
 	la	$a0, notquadratic
 	li	$v0, 4
 	syscall
 	b	endif
 
 elseif:
-	bne	$v0, 1, elseif2
+	bne	$v0, 1, elseif2		# if (v0 == 1) => 1 solution
 	la	$a0, x
 	li	$v0, 4
 	syscall
@@ -110,12 +110,12 @@ elseif:
 	syscall
 	b	endif
 elseif2:
-	bne	$v0, -1, else
+	bne	$v0, -1, else		# if (v0 == -1) => imaginary
 	la	$a0, imaginary
 	li	$v0, 4
 	syscall
 	b	endif
-else:
+else:					# else => 2 solutions
 	la	$a0, x1
 	li	$v0, 4
 	syscall
