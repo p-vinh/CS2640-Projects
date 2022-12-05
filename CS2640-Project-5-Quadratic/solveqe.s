@@ -33,6 +33,7 @@ x:	.asciiz "x = "
 x1:	.asciiz "x1 = "
 x2:	.asciiz "x2 = "
 
+err: .float 0.0000001
 
 
 	.text
@@ -186,6 +187,7 @@ else3:
 	s.s	$f14, 12($sp)
 
 	mov.s	$f12, $f7
+	mov.s	$f13, $f14
 	jal	sqrts
 	mov.s	$f7, $f0
 	l.s	$f14, 12($sp)	# restore parameters
@@ -216,8 +218,26 @@ else3:
 #
 # parameters:
 #	$f12 - input number
+#	$f13 - number 'c'
 # return:
 #	$f0 - square root of input
 sqrts:
+# 	mov.s	$f0, $f12
+# 	l.s	$f5, err
+# 	li.s	$f6, 2.0
+# while:
+# 	mul.s	$f9, $f5, $f0
+	
+# 	div.s	$f7, $f13, $f0
+# 	sub.s	$f7, $f0, $f7
+# 	abs.s	$f7, $f7
+
+# 	c.lt.s	$f9, $f7
+
+# 	div.s	$f8, $f13, $f0
+# 	add.s	$f0, $f8, $f0
+# 	div.s	$f0, $f0, $f6
+# 	bc1f	while
+
 	sqrt.s	$f0, $f12
 	jr	$ra
