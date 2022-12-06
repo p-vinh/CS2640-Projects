@@ -214,30 +214,22 @@ else3:
 	jr	$ra
 
 #
-# float sqrts(float x)
-#
+# float sqrts(float n)
+#	returns the square root of the given float
 # parameters:
-#	$f12 - input number
-#	$f13 - number 'c'
-# return:
-#	$f0 - square root of input
+#	$f12: n
+# return values:
+#	$f0: sqrt(n)
 sqrts:
-# 	mov.s	$f0, $f12
-# 	l.s	$f5, err
-# 	li.s	$f6, 2.0
-# while:
-# 	mul.s	$f9, $f5, $f0
-	
-# 	div.s	$f7, $f13, $f0
-# 	sub.s	$f7, $f0, $f7
-# 	abs.s	$f7, $f7
+	mov.s	$f0, $f12	#f0: x = n
+	li.s	$f1, 1.0	#f1: y = 1
 
-# 	c.lt.s	$f9, $f7
-
-# 	div.s	$f8, $f13, $f0
-# 	add.s	$f0, $f8, $f0
-# 	div.s	$f0, $f0, $f6
-# 	bc1f	while
-
-	sqrt.s	$f0, $f12
-	jr	$ra
+while:	c.lt.s	$f1, $f0	#while y < x
+	bc1f	endw
+	add.s	$f0, $f0, $f1	#f0: x = (x + y)
+	li.s	$f1, 2.0
+	div.s	$f0, $f0, $f1	#f0: x = (x + y) / 2
+	div.s	$f1, $f12, $f0	#f1: y = n / x
+	b	while
+endw:
+	jal	$ra		#return x
