@@ -11,13 +11,11 @@
 #
 	
 	.data
-head:	.word 0
-input:	.space 64
-ptfname:.asciiz "C:\Users\vinhp\Documents\GitHub\CS2640-Projects\CS2640-Project-4-Elements\enames.dat"
-title:	
-	.asciiz "Elements by V. Pham\n\n"
-elements:
-	.asciiz " elements\n\n"
+head:		.word 0
+input:		.space 64
+ptfname:	.asciiz "C:\Users\vinhp\Documents\GitHub\CS2640-Projects\CS2640-Project-4-Elements\enames.dat"
+title:		.asciiz "Elements by V. Pham\n\n"
+elements:	.asciiz " elements\n\n"
 
 
 	.text
