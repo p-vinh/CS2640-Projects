@@ -221,15 +221,5 @@ else3:
 # return values:
 #	$f0: sqrt(n)
 sqrts:
-	mov.s	$f0, $f12	#f0: x = n
-	li.s	$f1, 1.0	#f1: y = 1
-
-while:	c.lt.s	$f1, $f0	#while y < x
-	bc1f	endw
-	add.s	$f0, $f0, $f1	#f0: x = (x + y)
-	li.s	$f1, 2.0
-	div.s	$f0, $f0, $f1	#f0: x = (x + y) / 2
-	div.s	$f1, $f12, $f0	#f1: y = n / x
-	b	while
-endw:
+	sqrt.s	$f0, $f12
 	jal	$ra		#return x
